@@ -1,7 +1,7 @@
 ### Hi there 👋
 ![counter](https://enx5lktfxdsoaco.m.pipedream.net)
 
-![Github stats](https://github-readme-stats.vercel.app/api?username=ziazon&show_icons=true&show_icons=true&hide_border=true&count_private=true&include_all_commits=true&title_color=000000&icon_color=000000)
+![Github stats](https://github-readme-stats-git-master-ziazon.vercel.app/api?username=ziazon&show_icons=true&show_icons=true&hide_border=true&count_private=true&include_all_commits=true&title_color=000000&icon_color=000000)
 
 <!--
 **ziazon/ziazon** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
