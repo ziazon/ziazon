@@ -1,0 +1,10 @@
+{
+  "name": "ziazon-profile",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "test": "node --test \"scripts/**/*.test.mjs\"",
+    "generate": "node scripts/generate-stats.mjs"
+  }
+}
