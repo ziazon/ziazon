@@ -68,6 +68,23 @@ and committed as static SVGs — no third-party service, no rate limits, and the
 rather than publish a number it cannot verify**. The figures include private and client work,
 which is most of what I ship; the public repositories here are a small slice of it.
 
+## Sponsors
+
+<p align="center">
+  <a href="https://www.patreon.com/ziazizi">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/ziazon/.github/main/assets/sponsors-dark.svg">
+      <img alt="Company sponsors of my open-source work. Become a sponsor on Patreon." src="https://raw.githubusercontent.com/ziazon/.github/main/assets/sponsors-light.svg" width="400">
+    </picture>
+  </a>
+  <a href="https://www.patreon.com/ziazizi">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/ziazon/.github/main/assets/supporters-dark.svg">
+      <img alt="Supporters of my open-source work on Patreon." src="https://raw.githubusercontent.com/ziazon/.github/main/assets/supporters-light.svg" width="400">
+    </picture>
+  </a>
+</p>
+
 ## Stack
 
 | | |
