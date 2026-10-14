@@ -11,7 +11,8 @@
   <a href="https://zia.saidi.pro">zia.saidi.pro</a> ·
   <a href="https://zia.saidi.pro/request-for-proposal">Request a proposal</a> ·
   <a href="https://fantastical.app/zia/intro">Book a call</a> ·
-  <a href="https://www.linkedin.com/in/ziasaidi/">LinkedIn</a>
+  <a href="https://www.linkedin.com/in/ziasaidi/">LinkedIn</a> ·
+  <a href="https://www.patreon.com/ziazizi">Support my work on Patreon</a>
 </p>
 
 ---
