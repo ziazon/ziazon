@@ -35,7 +35,7 @@ export function escapeXml(value) {
     .replaceAll("'", '&apos;');
 }
 
-export function assertVerifiableStats(raw, { allowZeroPrivate = false } = {}) {
+export function assertVerifiableStats(raw) {
   if (!Number.isInteger(raw.totalContributions) || raw.totalContributions <= 0) {
     throw new Error('totalContributions must be a positive integer.');
   }
@@ -44,10 +44,9 @@ export function assertVerifiableStats(raw, { allowZeroPrivate = false } = {}) {
       throw new Error(`${field} must be a non-negative integer; stats cannot be verified.`);
     }
   }
-  if (raw.restrictedContributions === 0 && !allowZeroPrivate) {
-    throw new Error(
-      'The token cannot see private contributions, so the published commit count would be wrong. Set ALLOW_ZERO_PRIVATE=1 only if zero private contributions is genuinely correct.',
-    );
+  const commits = raw.publicCommits + raw.restrictedContributions;
+  if (!Number.isInteger(commits) || commits <= 0 || commits > raw.totalContributions) {
+    throw new Error('Commit count is inconsistent with total contributions; stats cannot be verified.');
   }
   if (!Number.isInteger(raw.pullRequestsAllTime) || raw.pullRequestsAllTime <= 0) {
     throw new Error('pullRequestsAllTime must be a positive integer.');
