@@ -1,11 +1,12 @@
 <h1 align="center">Zia Saidi</h1>
 <!-- profile:managed:start -->
 
-<p align="center"><strong>Software architect · 25+ years of shipped work</strong></p>
+<p align="center"><strong>Software architect · founder of Awna</strong></p>
 
 <p align="center">
-  I connect the disciplines that make software work. With AI, that breadth now does the
-  work of a whole team.
+  I connect the disciplines that make software work. Thirty years of building software end
+  to end, from servers and databases to the teams around them. With AI, that breadth now does
+  the work of a whole team.
 </p>
 
 <p align="center">
@@ -37,22 +38,30 @@
 
 ## How I build
 
-Every project runs on a managed AI team — planner, implementer, independent reviewer, asset
-generator — each seat following my written engineering standards, and each filled by the
-model family best suited to it, so reviews never share the author's blind spots. I sign off
-on every delivery myself, and every correction I make gets written back into the standards.
+Every project runs on a managed AI team: a planner, an implementer, an independent reviewer
+and an asset generator. Each seat follows my written engineering standards and is filled by
+the model family best suited to it, so a review never shares the author's blind spots. A
+person signs off every delivery, and every correction goes back into the standards.
 
-- A written operating system: verification discipline, TDD by default, atomic commits,
-  CI-gated pull requests
-- 30+ authored skills encoding my standards across the whole product lifecycle
-- Decision-complete plans up front, so ambiguity never stalls a build
-- Persistent project memory and clean handoffs — no quality cliff on long projects
-- Speed from parallelism, not corner-cutting
+- A written operating system: verification before claims, test-first by default, one change
+  per commit, and a check that runs before anything merges
+- More than 30 written skills that hold the standards for each part of the work
+- Every open decision settled up front, so the agents work from complete plans and nothing
+  stalls mid-build
+- Written project notes carry context between sessions, so month six moves as fast as week one
+- Speed from parallel builds, not corner-cutting
 
-<a href="https://zia.saidi.pro/process">See how I build →</a>
+<a href="https://awna.ai/how-we-work/">See how I build →</a>
 
 <!-- profile:managed:end -->
 <!-- profile:projects:start -->
+## Open-source projects
+
+- **[voice](https://github.com/awna-ai/voice)** — A kit for building your own ai assistant
+- **[radio](https://github.com/awna-ai/radio)** — One daemon per computer that carries rooms and messages between local apps and other computers
+- **[zizi-skills](https://github.com/ziazon/zizi-skills)** — A skill library for disciplined software work: planning, test-first implementation, code and security review, git hygiene, and session handoff.
+- **[dotfiles](https://github.com/ziazon/dotfiles)**
+
 <!-- profile:projects:end -->
 ## GitHub activity
 
