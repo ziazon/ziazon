@@ -4,8 +4,8 @@
 <p align="center"><strong>Software architect · 25+ years of shipped work</strong></p>
 
 <p align="center">
-  I build your web application end to end — with an AI team trained on my own written
-  standards, so you get full-team capability at the speed and cost of one senior engineer.
+  I connect the disciplines that make software work. With AI, that breadth now does the
+  work of a whole team.
 </p>
 
 <p align="center">

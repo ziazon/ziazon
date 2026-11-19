@@ -33,11 +33,11 @@ test('link errors and non-200 responses become problems', async () => {
   assert.equal((await checkLinks(['https://awna.ai/a'], [], { fetch: async () => ({ status: 404 }) })).length, 1);
   assert.equal((await checkLinks(['https://awna.ai/a'], [], { fetch: async () => { throw new Error('offline'); } })).length, 1);
 });
-test('bio validates length, nonempty content, blog host, and company changes', () => {
-  const current = { company: 'Awna' };
-  const good = { bio: 'I build software.', blog: 'https://zia.saidi.pro', company: 'Awna' };
-  assert.deepEqual(checkBio(good, current), []);
-  for (const bad of [{ bio: '' }, { bio: ' '.repeat(5) }, { bio: 'x'.repeat(161) }, { blog: 'http://zia.saidi.pro' }, { blog: 'https://evil.example' }, { company: 'Changed' }]) assert.equal(checkBio({ ...good, ...bad }, current).length, 1);
+test('bio validates length, nonempty content and blog host while ignoring company', () => {
+  const good = { bio: 'I build software.', blog: 'https://zia.saidi.pro' };
+  assert.deepEqual(checkBio(good), []);
+  assert.deepEqual(checkBio({ ...good, company: 42 }), []);
+  for (const bad of [{ bio: '' }, { bio: ' '.repeat(5) }, { bio: 'x'.repeat(161) }, { blog: 'http://zia.saidi.pro' }, { blog: 'https://evil.example' }]) assert.equal(checkBio({ ...good, ...bad }).length, 1);
 });
 test('private matches count only added whole-word occurrences and reveal labels, never names', () => {
   const privateNames = ['fixture-private', 'xy'];

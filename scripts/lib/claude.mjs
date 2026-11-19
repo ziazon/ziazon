@@ -115,7 +115,7 @@ const PROFILE_PROMPT = [
   "Each page's url is where it lives now; when a README link redirects to a page's url, link that url instead.",
   'Never mention any name on the never-mention list, in any spelling or case, even when the website mentions it. This applies to every output field including summary.',
   'Plain and warm, no hype, no exclamation marks.',
-  'Output only JSON: {"managed":"<markdown for the managed block>","bio":"<at most 160 chars>","blog":"<https url>","company":"<company>","summary":"<one line: what changed and why>"}.',
+  'Output only JSON: {"managed":"<markdown for the managed block>","bio":"<at most 160 chars>","blog":"<https url>","summary":"<one line: what changed and why>"}.',
 ].join('\n');
 
 export function draftProfile({ managed, current, pages, repos, skillCount, neverMention, oauthToken, runClaude }) {

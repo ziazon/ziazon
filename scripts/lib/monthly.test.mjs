@@ -3,14 +3,14 @@ import { test } from 'node:test';
 import { MARKERS, joinReadme } from './readme.mjs';
 import { runMonthly } from './monthly.mjs';
 
-const current = { bio: 'I build.', blog: 'https://zia.saidi.pro', company: 'Awna' };
+const current = { bio: 'I build.', blog: 'https://zia.saidi.pro', company: 'Fixture Company' };
 const parts = { before: 'Hero\n', managed: '\nI build.\n', between: '\n', projects: '\n', after: '\nActivity\n' };
 const original = joinReadme(parts);
-const proposal = { managed: '\nI build software.\n', ...current, bio: 'I build software.', summary: 'Aligned with website.' };
+const proposal = { managed: '\nI build software.\n', bio: 'I build software.', blog: current.blog, summary: 'Aligned with website.' };
 function fixture({ draft = {}, stats = true, unsupported = [], factError = false, privateNames = ['fixture-private'], dryRun = false, unchanged = false, apiStatus } = {}) {
   const git = [], requests = [], writes = [], logs = [], claude = [];
   const deps = {
-    token: 'profile-SENTINEL', oauthToken: 'oauth-SENTINEL', repository: 'ziazon/ziazon', runId: '123', dryRun,
+    token: 'profile-SENTINEL', oauthToken: 'oauth-SENTINEL', repository: 'fixture-owner/fixture-profile', runId: '123', dryRun,
     now: () => new Date('2026-11-19T12:00:00Z'),
     readFile: async () => original,
     writeFile: async (...args) => writes.push(args),
@@ -18,14 +18,14 @@ function fixture({ draft = {}, stats = true, unsupported = [], factError = false
     runGit: async args => { git.push(args); return { code: args.includes('--quiet') && stats ? 1 : 0, stdout: '' }; },
     runClaude: async call => {
       claude.push(call);
-      const result = claude.length === 1 ? { ...(unchanged ? { ...proposal, managed: parts.managed, ...current } : proposal), ...draft } : { unsupported };
+      const result = claude.length === 1 ? { ...(unchanged ? { ...proposal, managed: parts.managed, bio: current.bio, blog: current.blog } : proposal), ...draft } : { unsupported };
       return { code: 0, stdout: JSON.stringify({ result: factError && claude.length > 1 ? 'not JSON' : JSON.stringify(result) }) };
     },
     fetch: async (url, options = {}) => {
       requests.push([url, options]);
       if (url.startsWith('https://zia.saidi.pro/')) return { status: 200, text: async () => '<p>I build software.</p>' };
       if (options.method === 'PATCH') return { status: apiStatus ?? 200, json: async () => ({}) };
-      if (options.method === 'POST') return { status: 201, json: async () => ({ html_url: 'https://github.com/ziazon/ziazon/pull/1' }) };
+      if (options.method === 'POST') return { status: 201, json: async () => ({ html_url: 'https://github.com/fixture-owner/fixture-profile/pull/1' }) };
       let body;
       if (url === 'https://api.github.com/user') body = { ...current, owned_private_repos: privateNames.length };
       else if (url === 'https://api.github.com/orgs/awna-ai') body = { owned_private_repos: 0 };
@@ -61,12 +61,13 @@ test('dry run prints diff, proposed fields, summary and all checks without any w
   assert.deepEqual(f.writes, []);
   assert.deepEqual(mutations(f), []);
   const output = f.logs.join('\n');
-  for (const phrase of ['--- a/README.md', '+++ b/README.md', '-I build.', '+I build software.', '30 years', 'company change needs review', 'not written in the facts', 'unsupported', 'Aligned with website.', 'https://zia.saidi.pro', 'Changed']) assert.ok(output.includes(phrase), phrase);
+  assert.doesNotMatch(output, /company|Changed/i);
+  for (const phrase of ['--- a/README.md', '+++ b/README.md', '-I build.', '+I build software.', '30 years', 'not written in the facts', 'unsupported', 'Aligned with website.', 'https://zia.saidi.pro']) assert.ok(output.includes(phrase), phrase);
 });
-test('clean run stages README and assets, commits summary, pushes master, then patches changed bio only', async () => {
+test('clean run stages README and assets, commits fixed body, pushes master, then patches changed bio only', async () => {
   const f = fixture();
   await runMonthly(f.deps);
-  assert.deepEqual(f.git, [['add', 'README.md', 'assets'], ['diff', '--cached', '--quiet'], ['commit', '-m', 'chore: monthly profile update (2026-11)', '-m', 'Aligned with website.'], ['push', 'origin', 'HEAD:master']]);
+  assert.deepEqual(f.git, [['add', 'README.md', 'assets'], ['diff', '--cached', '--quiet'], ['commit', '-m', 'chore: monthly profile update (2026-11)', '-m', 'Managed block, projects list and bio refreshed from zia.saidi.pro.'], ['push', 'origin', 'HEAD:master']]);
   assert.equal(f.writes.length, 1);
   assert.equal(f.writes[0][0], 'README.md');
   assert.equal(f.writes[0][1], joinReadme({ ...parts, managed: proposal.managed }));
@@ -87,15 +88,16 @@ test('README-only changes need no PATCH', async () => {
 });
 test('problem run publishes stats first, then review branch and PR, and fails with review URL', async () => {
   const f = fixture({ draft: { company: 'Changed' }, unsupported: ['unsupported claim'] });
-  await assert.rejects(runMonthly(f.deps), /Opened https:\/\/github.com\/ziazon\/ziazon\/pull\/1 for review: 2 checks did not pass\./);
-  assert.deepEqual(f.git, [['add', 'assets'], ['diff', '--cached', '--quiet'], ['commit', '-m', 'chore: refresh profile stats'], ['push', 'origin', 'HEAD:master'], ['switch', '-c', 'profile-update/2026-11-123'], ['add', 'README.md'], ['commit', '-m', 'chore: monthly profile update (2026-11)', '-m', 'Aligned with website.'], ['push', 'origin', 'HEAD:profile-update/2026-11-123']]);
+  await assert.rejects(runMonthly(f.deps), /Opened https:\/\/github.com\/fixture-owner\/fixture-profile\/pull\/1 for review: 1 checks did not pass\./);
+  assert.deepEqual(f.git, [['add', 'assets'], ['diff', '--cached', '--quiet'], ['commit', '-m', 'chore: refresh profile stats'], ['push', 'origin', 'HEAD:master'], ['switch', '-c', 'profile-update/2026-11-123'], ['add', 'README.md'], ['commit', '-m', 'chore: monthly profile update (2026-11)', '-m', 'Managed block, projects list and bio refreshed from zia.saidi.pro.'], ['push', 'origin', 'HEAD:profile-update/2026-11-123']]);
   const [[url, options]] = mutations(f);
-  assert.equal(url, 'https://api.github.com/repos/ziazon/ziazon/pulls');
+  assert.equal(url, 'https://api.github.com/repos/fixture-owner/fixture-profile/pulls');
   const pr = JSON.parse(options.body);
   assert.equal(pr.title, 'Monthly profile update 2026-11 needs review');
   assert.equal(pr.base, 'master');
   assert.equal(pr.head, 'profile-update/2026-11-123');
-  for (const phrase of ['Aligned with website.', 'company change needs review', 'unsupported claim', 'Changed', proposal.bio, current.blog]) assert.ok(pr.body.includes(phrase));
+  assert.doesNotMatch(pr.body, /company|Changed/i);
+  for (const phrase of ['Aligned with website.', 'unsupported claim', proposal.bio, current.blog]) assert.ok(pr.body.includes(phrase));
 });
 test('unparseable fact check becomes a review problem instead of crashing before PR', async () => {
   const f = fixture({ factError: true, stats: false });
@@ -159,7 +161,6 @@ for (const [field, value] of [['bio', 'I build software.'], ['blog', 'https://zi
   });
 }
 for (const [draft, problem] of [
-  [{ company: 'Needs review' }, 'company change needs review'],
   [{ bio: '' }, 'Bio must be nonempty and at most 160 characters.'],
 ]) {
   test(`profile review with unchanged README publishes only fresh stats: ${problem}`, async () => {
@@ -290,3 +291,16 @@ test('an already-empty managed block still needs review on an otherwise unchange
   assert.deepEqual(f.writes, []);
   assert.deepEqual(mutations(f), []);
 });
+
+for (const company of ['fixture-private', 42, null]) {
+  test(`extra company is ignored for publishing and unchanged detection: ${JSON.stringify(company)}`, async () => {
+    const f = fixture({ draft: { company, blog: 'https://zia.saidi.pro/about' } });
+    await runMonthly(f.deps);
+    assert.deepEqual(JSON.parse(mutations(f)[0][1].body), { bio: proposal.bio, blog: 'https://zia.saidi.pro/about' });
+    assert.deepEqual(JSON.parse(f.claude[0].input).current, { bio: current.bio, blog: current.blog });
+    const unchanged = fixture({ unchanged: true, stats: false, draft: { company } });
+    await runMonthly(unchanged.deps);
+    assert.equal(unchanged.claude.length, 1);
+    assert.deepEqual(mutations(unchanged), []);
+  });
+}
