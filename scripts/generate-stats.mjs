@@ -3,6 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import {
   THEMES,
   assertVerifiableStats,
+  buildStatRows,
   renderActivityCard,
   renderStatsCard,
 } from './lib/stats.mjs';
@@ -89,9 +90,11 @@ async function fetchStats() {
 
 async function main() {
   const raw = await fetchStats();
-  assertVerifiableStats(raw, {
-    allowZeroPrivate: process.env.ALLOW_ZERO_PRIVATE === '1',
-  });
+  assertVerifiableStats(raw);
+  for (const { label, value } of buildStatRows(raw)) {
+    console.log(`${label}: ${value}`);
+  }
+  console.log(`private contributions visible to this token: ${raw.restrictedContributions === 0 ? 'yes' : 'no'}`);
 
   const files = [
     ['stats-light.svg', renderStatsCard(raw, THEMES.light)],

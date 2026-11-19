@@ -73,16 +73,28 @@ describe('aggregateByMonth', () => {
 });
 
 describe('assertVerifiableStats', () => {
-  test('rejects a token that cannot see private contributions', () => {
+  test('accepts zero restricted contributions with positive commits', () => {
+    const raw = { ...rawStats, restrictedContributions: 0 };
+    assert.equal(assertVerifiableStats(raw), raw);
+  });
+
+  test('rejects commits greater than total contributions', () => {
     assert.throws(
-      () => assertVerifiableStats({ ...rawStats, restrictedContributions: 0 }),
-      /token cannot see private contributions.*ALLOW_ZERO_PRIVATE=1/i,
+      () => assertVerifiableStats({ ...rawStats, totalContributions: 5_923 }),
+      { message: 'Commit count is inconsistent with total contributions; stats cannot be verified.' },
     );
   });
 
-  test('allows zero private contributions only with the explicit override', () => {
-    const raw = { ...rawStats, restrictedContributions: 0 };
-    assert.equal(assertVerifiableStats(raw, { allowZeroPrivate: true }), raw);
+  test('rejects zero commits', () => {
+    assert.throws(
+      () => assertVerifiableStats({ ...rawStats, publicCommits: 0, restrictedContributions: 0 }),
+      { message: 'Commit count is inconsistent with total contributions; stats cannot be verified.' },
+    );
+  });
+
+  test('accepts commits equal to total contributions', () => {
+    const raw = { ...rawStats, totalContributions: 5_924 };
+    assert.equal(assertVerifiableStats(raw), raw);
   });
 
   test('rejects unverifiable commit contribution fields', () => {
@@ -142,12 +154,10 @@ for (const [name, render, expectedNumbers] of [
   });
 }
 
-test('regression: invisible private contributions throw instead of emitting a low commit count', () => {
+test('regression: zero restricted contributions can produce a verified commit row', () => {
   const raw = { ...rawStats, restrictedContributions: 0 };
-  assert.throws(() => {
-    assertVerifiableStats(raw);
-    renderStatsCard(raw, THEMES.light);
-  }, /published commit count would be wrong/i);
+  assertVerifiableStats(raw);
+  assert.match(renderStatsCard(raw, THEMES.light), /Commits · last 12 months: 12/);
 });
 
 test('rendered card coordinate attributes have at most two decimal places', () => {
