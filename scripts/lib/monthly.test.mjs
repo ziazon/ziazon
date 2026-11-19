@@ -304,3 +304,46 @@ for (const company of ['fixture-private', 42, null]) {
     assert.deepEqual(mutations(unchanged), []);
   });
 }
+
+for (const unsupported of [[], ['A fixture claim']]) {
+  test(`fact check retries once and uses the successful result: ${JSON.stringify(unsupported)}`, async () => {
+    const f = fixture({ dryRun: true, unsupported });
+    const runClaude = f.deps.runClaude;
+    f.deps.runClaude = async call => {
+      const outcome = await runClaude(call);
+      return f.claude.length === 2 ? { code: 0, stdout: JSON.stringify({ result: 'not JSON' }) } : outcome;
+    };
+    await runMonthly(f.deps);
+    assert.equal(f.claude.length, 3);
+    const output = f.logs.join('\n');
+    assert.doesNotMatch(output, /Fact check did not return/);
+    assert.equal(output.includes('Fact check unsupported: A fixture claim'), unsupported.length > 0);
+    assert.deepEqual(f.git, []);
+    assert.deepEqual(f.writes, []);
+    assert.deepEqual(mutations(f), []);
+  });
+}
+for (const [outcome, kind] of [
+  [{ code: 0, stdout: JSON.stringify({ result: 'MODEL-SENTINEL', stop_reason: 'refusal' }) }, 'refusal'],
+  [{ code: 0, stdout: JSON.stringify({ result: 'MODEL-SENTINEL' }) }, 'invalid-json'],
+  [{ code: 0, stdout: 'null' }, 'unknown'],
+]) {
+  test(`two fact-check failures report only the final kind: ${kind}`, async () => {
+    const f = fixture({ dryRun: true });
+    const runClaude = f.deps.runClaude;
+    f.deps.runClaude = async call => {
+      const original = await runClaude(call);
+      if (f.claude.length === 2) return { code: 0, stdout: JSON.stringify({ result: 'FIRST-SENTINEL' }) };
+      return f.claude.length === 3 ? outcome : original;
+    };
+    await runMonthly(f.deps);
+    assert.equal(f.claude.length, 3);
+    assert.deepEqual(f.logs[1].split('\n').filter(line => line.startsWith('- ')), [
+      `- Fact check did not return a valid result (${kind}).`,
+    ]);
+    assert.doesNotMatch(f.logs.join('\n'), /MODEL-SENTINEL|FIRST-SENTINEL|declined|Cannot read/);
+    assert.deepEqual(f.git, []);
+    assert.deepEqual(f.writes, []);
+    assert.deepEqual(mutations(f), []);
+  });
+}

@@ -117,10 +117,16 @@ export async function runMonthly(deps) {
     }
     if (!unchanged) {
       let checked;
-      try {
-        checked = await factCheck({ facts, managed: newParts.managed, bio: draft.bio, neverMention: privateNames, oauthToken, runClaude: deps.runClaude });
-      } catch {
-        problems.push('Fact check did not return a valid result.');
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          checked = await factCheck({ facts, managed: newParts.managed, bio: draft.bio, neverMention: privateNames, oauthToken, runClaude: deps.runClaude });
+          break;
+        } catch (error) {
+          if (attempt === 1) {
+            const kind = ['invalid-json', 'cli-failed', 'refusal', 'max-tokens', 'empty'].includes(error?.kind) ? error.kind : 'unknown';
+            problems.push(`Fact check did not return a valid result (${kind}).`);
+          }
+        }
       }
       if (checked) {
         if (!Array.isArray(checked.unsupported) || checked.unsupported.some(phrase => typeof phrase !== 'string')) {
