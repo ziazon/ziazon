@@ -53,7 +53,7 @@ function readDraft({ code, stdout }, oauthToken) {
   try {
     result = JSON.parse(stdout);
   } catch {
-    throw new Error(`Claude Code exited with code ${code} and no JSON result.`);
+    throw Object.assign(new Error(`Claude Code exited with code ${code} and no JSON result.`), { kind: code === 0 ? 'invalid-json' : 'cli-failed' });
   }
 
   if (result.is_error || code !== 0) {
@@ -61,25 +61,25 @@ function readDraft({ code, stdout }, oauthToken) {
     const detail = String(result.result ?? '')
       .replaceAll(oauthToken, '[redacted]')
       .slice(0, ERROR_DETAIL_LIMIT);
-    throw new Error(`Claude Code run failed${status}: ${detail}`);
+    throw Object.assign(new Error(`Claude Code run failed${status}: ${detail}`), { kind: 'cli-failed' });
   }
   if (result.stop_reason === 'refusal') {
-    throw new Error('Claude declined to draft the update.');
+    throw Object.assign(new Error('Claude declined to draft the update.'), { kind: 'refusal' });
   }
   if (result.stop_reason === 'max_tokens') {
-    throw new Error('The draft was cut off at max_tokens.');
+    throw Object.assign(new Error('The draft was cut off at max_tokens.'), { kind: 'max-tokens' });
   }
 
   const draft = String(result.result ?? '').trim();
   if (!draft) {
-    throw new Error('Claude returned no draft text.');
+    throw Object.assign(new Error('Claude returned no draft text.'), { kind: 'empty' });
   }
   return draft;
 }
 
 export async function runClaudeJson({ systemPrompt, input, oauthToken, runClaude = runClaudeCli }) {
   if (typeof oauthToken !== 'string' || !oauthToken.trim()) {
-    throw new TypeError('runClaudeJson requires a Claude Code OAuth token.');
+    throw Object.assign(new TypeError('runClaudeJson requires a Claude Code OAuth token.'), { kind: 'cli-failed' });
   }
   const workDir = await mkdtemp(path.join(tmpdir(), 'monthly-draft-'));
   try {
@@ -88,16 +88,22 @@ export async function runClaudeJson({ systemPrompt, input, oauthToken, runClaude
       input: JSON.stringify(input),
       env: buildClaudeEnv({ oauthToken, home: workDir, searchPath: process.env.PATH }),
       cwd: workDir,
+    }).catch(error => {
+      throw Object.assign(new Error(error instanceof Error ? error.message : String(error)), { kind: 'cli-failed' });
     });
     const text = readDraft(outcome, oauthToken).replace(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/, '$1');
     let parsed;
     try {
       parsed = JSON.parse(text);
     } catch {
-      throw new Error('Claude did not return a valid JSON object.');
+      try {
+        parsed = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+      } catch {
+        throw Object.assign(new Error('Claude did not return a valid JSON object.'), { kind: 'invalid-json' });
+      }
     }
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      throw new Error('Claude did not return a valid JSON object.');
+      throw Object.assign(new Error('Claude did not return a valid JSON object.'), { kind: 'invalid-json' });
     }
     return parsed;
   } finally {
