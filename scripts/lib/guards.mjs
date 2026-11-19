@@ -24,7 +24,7 @@ export function checkNumbers(managedMarkdown, bio, corpusText) {
 
 export function extractUrls(text) {
   const urls = [];
-  const inlineText = text.replace(/^ {0,3}\[[^\]\n]+\]:[ \t]*(?:<([^>\n]*)>|([^\s]+))[^\n]*$/gm,
+  const inlineText = text.replace(/^ {0,3}\[[^\]\n]+\]:[ \t]*(?:\r?\n[ \t]*)?(?:<([^>\n]*)>|([^\s]+))[^\n]*$/gm,
     (match, angled, bare) => {
       urls.push(angled ?? bare);
       return ' ';
