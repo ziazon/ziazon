@@ -5,6 +5,7 @@
   "engines": { "node": ">=24" },
   "scripts": {
     "test": "node --test \"scripts/**/*.test.mjs\"",
-    "generate": "node scripts/generate-stats.mjs"
+    "generate": "node scripts/generate-stats.mjs",
+    "monthly": "node scripts/monthly-update.mjs"
   }
 }
