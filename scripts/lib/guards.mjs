@@ -66,11 +66,10 @@ export async function checkLinks(newUrls, publishedUrls, { fetch }) {
   return problems;
 }
 
-export function checkBio({ bio, blog, company }, current) {
+export function checkBio({ bio, blog }) {
   const problems = [];
   if (typeof bio !== 'string' || !bio.trim() || [...bio].length > 160) problems.push('Bio must be nonempty and at most 160 characters.');
   if (!allowedUrl(blog)) problems.push('Blog must use HTTPS on an allowlisted host.');
-  if (company !== current.company) problems.push('company change needs review');
   return problems;
 }
 

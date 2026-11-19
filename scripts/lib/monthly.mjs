@@ -67,7 +67,7 @@ export async function runMonthly(deps) {
     const original = await read('README.md', 'utf8');
     const oldParts = splitReadme(original);
     const user = await (await githubRequest(api, '/user')).json();
-    const current = Object.fromEntries(['bio', 'blog', 'company'].map(key => [key, user[key] ?? '']));
+    const current = Object.fromEntries(['bio', 'blog'].map(key => [key, user[key] ?? '']));
     const date = now();
     const month = date.toISOString().slice(0, 7);
     const { pages, projectSlugs } = await fetchSiteFacts({ fetch });
@@ -78,9 +78,11 @@ export async function runMonthly(deps) {
     const publicNames = new Set([...ALLOWED_HOSTS, ...projectSlugs.map(slug => slug.toLowerCase())]);
     privateNames = privateNames.filter(name => !publicNames.has(name.toLowerCase()));
     const projects = renderProjects(repos);
-    const draft = await draftProfile({ managed: oldParts.managed, current, pages, repos, skillCount,
+    const response = await draftProfile({ managed: oldParts.managed, current, pages, repos, skillCount,
       neverMention: privateNames, oauthToken, runClaude: deps.runClaude });
-    for (const key of ['managed', 'bio', 'blog', 'company', 'summary']) {
+    const draftFields = ['managed', 'bio', 'blog', 'summary'];
+    const draft = Object.fromEntries(draftFields.map(key => [key, response[key]]));
+    for (const key of draftFields) {
       if (typeof draft[key] !== 'string') throw new Error(`Claude draft field ${key} must be a string.`);
     }
     if ([token, oauthToken].some(secret => secret && Object.values(draft).some(value => typeof value === 'string' && value.includes(secret)))) {
@@ -88,9 +90,9 @@ export async function runMonthly(deps) {
     }
     const newParts = { ...oldParts, managed: markerBlock(draft.managed), projects: markerBlock(projects) };
     const updated = joinReadme(newParts);
-    const published = [oldParts.managed, oldParts.projects, current.bio, current.blog, current.company];
+    const published = [oldParts.managed, oldParts.projects, current.bio, current.blog];
     const hits = findPrivateNames({ managed: newParts.managed, projects: newParts.projects,
-      bio: draft.bio, blog: draft.blog, company: draft.company }, published, privateNames);
+      bio: draft.bio, blog: draft.blog }, published, privateNames);
     const summaryHits = findPrivateNames({ summary: draft.summary }, [], privateNames);
     if (hits.count || summaryHits.count) {
       throw new Error(`A private repository name appeared in ${[...hits.sections, ...summaryHits.sections].join(', ')} (${hits.count + summaryHits.count} hits); nothing was published.`);
@@ -99,7 +101,7 @@ export async function runMonthly(deps) {
     const managedProblems = [];
     if (!draft.managed.trim()) managedProblems.push('Draft managed block is empty.');
     else if (draft.managed.length < oldParts.managed.length * 0.4) managedProblems.push('Draft managed block is under 40% of the old managed block length.');
-    const unchanged = updated === original && !Object.keys(changedFields).length && draft.company === current.company;
+    const unchanged = updated === original && !Object.keys(changedFields).length;
     if (unchanged && !dryRun && !managedProblems.length) {
       await commitStats();
       return;
@@ -107,7 +109,7 @@ export async function runMonthly(deps) {
     const facts = { pages, repos, skillCount };
     const corpus = [...pages.map(page => page.text), ...repos.map(repo => repo.description), String(skillCount)].join('\n');
     const problems = [...managedProblems, ...checkNumbers(newParts.managed, draft.bio, corpus),
-      ...await checkLinks(extractUrls(updated), extractUrls(original), { fetch }), ...checkBio(draft, current)];
+      ...await checkLinks(extractUrls(updated), extractUrls(original), { fetch }), ...checkBio(draft)];
     try {
       problems.push(...checkOutsideUnchanged(oldParts, splitReadme(updated)));
     } catch {
@@ -130,8 +132,9 @@ export async function runMonthly(deps) {
         }
       }
     }
+    const commitBody = 'Managed block, projects list and bio refreshed from zia.saidi.pro.';
     const summary = redactTokens(draft.summary).replace(/[\r\n]+/g, ' ');
-    const proposed = JSON.stringify({ bio: draft.bio, blog: draft.blog, company: draft.company }, null, 2);
+    const proposed = JSON.stringify({ bio: draft.bio, blog: draft.blog }, null, 2);
     const review = redactTokens([summary, '', ...problems.map(problem => `- ${problem}`), '', 'Proposed profile:', proposed].join('\n'));
     if (dryRun) {
       log(redactTokens(readmeDiff(original, updated)));
@@ -143,7 +146,7 @@ export async function runMonthly(deps) {
       await git(['add', 'README.md', 'assets']);
       const staged = await git(['diff', '--cached', '--quiet'], true);
       if (staged.code === 1) {
-        await git(['commit', '-m', `chore: monthly profile update (${month})`, '-m', summary]);
+        await git(['commit', '-m', `chore: monthly profile update (${month})`, '-m', commitBody]);
         await git(['push', 'origin', 'HEAD:master']);
       }
       if (Object.keys(changedFields).length) await githubRequest(api, '/user', { method: 'PATCH', body: JSON.stringify(changedFields) });
@@ -158,7 +161,7 @@ export async function runMonthly(deps) {
     await git(['switch', '-c', branch]);
     await write('README.md', updated, 'utf8');
     await git(['add', 'README.md']);
-    await git(['commit', '-m', `chore: monthly profile update (${month})`, '-m', summary]);
+    await git(['commit', '-m', `chore: monthly profile update (${month})`, '-m', commitBody]);
     await git(['push', 'origin', `HEAD:${branch}`]);
     const pr = await (await githubRequest(api, `/repos/${repository}/pulls`, { method: 'POST', body: JSON.stringify({
       title: `Monthly profile update ${month} needs review`, head: branch, base: 'master', body: review,
