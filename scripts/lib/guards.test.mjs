@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { checkOutsideUnchanged, checkNumbers, extractUrls, checkLinks, checkBio, findPrivateNames } from './guards.mjs';
+import { checkOutsideUnchanged, checkNumbers, extractUrls, checkMovedLinks, checkLinks, checkBio, findPrivateNames } from './guards.mjs';
 
 test('outside guard accepts identical protected regions and flags each changed region', () => {
   const parts = { before: 'a', between: 'b', after: 'c' };
@@ -118,3 +118,18 @@ for (const [text, expected] of [
     assert.equal(problems.length, allowed ? 0 : 1);
   });
 }
+
+test('moved links normalize fragments, trailing slashes and hostname case and report each once', () => {
+  const redirects = [{ from: 'https://zia.saidi.pro/request-for-proposal', to: 'https://awna.ai/consulting/' }];
+  assert.deepEqual(checkMovedLinks([
+    'https://ZIA.saidi.pro/request-for-proposal/#fragment',
+    'https://zia.saidi.pro/request-for-proposal',
+    'https://zia.saidi.pro/request-for-proposal/#fragment',
+    'https://awna.ai/consulting/#talk-to-us',
+    'https://zia.saidi.pro/about',
+    'not a URL',
+  ], redirects), [
+    'A link points to https://zia.saidi.pro/request-for-proposal, which moved to https://awna.ai/consulting/; link the new page.',
+  ]);
+  assert.deepEqual(checkMovedLinks(['https://awna.ai/consulting/#talk-to-us', 'not a URL'], redirects), []);
+});

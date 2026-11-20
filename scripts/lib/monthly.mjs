@@ -4,7 +4,7 @@ import { fetchSiteFacts } from './site-facts.mjs';
 import { githubRequest, listPublicRepos, listPrivateRepoNames, countPublicSkills, renderProjects } from './repos.mjs';
 import { splitReadme, joinReadme } from './readme.mjs';
 import { draftProfile, factCheck } from './claude.mjs';
-import { ALLOWED_HOSTS, checkOutsideUnchanged, checkNumbers, checkLinks, extractUrls, checkBio, findPrivateNames } from './guards.mjs';
+import { ALLOWED_HOSTS, checkOutsideUnchanged, checkNumbers, checkMovedLinks, checkLinks, extractUrls, checkBio, findPrivateNames } from './guards.mjs';
 
 function runGit(args) {
   return new Promise((resolve, reject) => {
@@ -71,7 +71,7 @@ export async function runMonthly(deps) {
     const current = Object.fromEntries(['bio', 'blog'].map(key => [key, user[key] ?? '']));
     const date = now();
     const month = date.toISOString().slice(0, 7);
-    const { pages, projectSlugs } = await fetchSiteFacts({ fetch });
+    const { pages, projectSlugs, redirects } = await fetchSiteFacts({ fetch });
     const repos = await listPublicRepos({ ...api, owners: ['ziazon', 'awna-ai'], now: date });
     const skillCount = await countPublicSkills(api);
     privateNames = await listPrivateRepoNames(api);
@@ -79,7 +79,7 @@ export async function runMonthly(deps) {
     const publicNames = new Set([...ALLOWED_HOSTS, ...projectSlugs.map(slug => slug.toLowerCase())]);
     privateNames = privateNames.filter(name => !publicNames.has(name.toLowerCase()));
     const projects = renderProjects(repos);
-    const response = await draftProfile({ managed: oldParts.managed, blog: current.blog, pages, repos, skillCount,
+    const response = await draftProfile({ managed: oldParts.managed, blog: current.blog, pages, redirects, repos, skillCount,
       neverMention: privateNames, oauthToken, runClaude: deps.runClaude });
     const draftFields = ['managed', 'bio', 'blog', 'summary'];
     const draft = Object.fromEntries(draftFields.map(key => [key, response[key]]));
@@ -102,15 +102,16 @@ export async function runMonthly(deps) {
     const managedProblems = [];
     if (!draft.managed.trim()) managedProblems.push('Draft managed block is empty.');
     else if (draft.managed.length < oldParts.managed.length * 0.4) managedProblems.push('Draft managed block is under 40% of the old managed block length.');
+    const movedProblems = checkMovedLinks(extractUrls(newParts.managed), redirects);
     const unchanged = updated === original && !Object.keys(changedFields).length;
-    if (unchanged && !dryRun && !managedProblems.length) {
+    if (unchanged && !dryRun && !managedProblems.length && !movedProblems.length) {
       const committed = await commitStats();
       log(`Published: README ${committed ? 'committed' : 'unchanged'}; bio unchanged; blog unchanged.`);
       return;
     }
     const facts = { pages, repos, skillCount };
     const corpus = [...pages.map(page => page.text), ...repos.map(repo => repo.description), String(skillCount)].join('\n');
-    const problems = [...managedProblems, ...checkNumbers(newParts.managed, draft.bio, corpus),
+    const problems = [...managedProblems, ...movedProblems, ...checkNumbers(newParts.managed, draft.bio, corpus),
       ...await checkLinks(extractUrls(updated), extractUrls(original), { fetch }), ...checkBio(draft)];
     try {
       problems.push(...checkOutsideUnchanged(oldParts, splitReadme(updated)));

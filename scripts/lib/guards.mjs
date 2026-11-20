@@ -46,6 +46,31 @@ export function extractUrls(text) {
   return [...new Set(urls.map(url => url.replaceAll('&amp;', '&')).map(url => url.startsWith('//') ? `https:${url}` : url))];
 }
 
+export function checkMovedLinks(urls, redirects) {
+  function normalize(raw) {
+    try {
+      const url = new URL(raw);
+      url.hash = '';
+      url.pathname = url.pathname.replace(/\/$/, '');
+      url.hostname = url.hostname.toLowerCase();
+      return url.href;
+    } catch {
+      return null;
+    }
+  }
+  const moved = new Map(redirects.map(redirect => [normalize(redirect.from), redirect]));
+  const seen = new Set();
+  const problems = [];
+  for (const url of urls) {
+    const normalized = normalize(url);
+    if (!normalized || seen.has(normalized) || !moved.has(normalized)) continue;
+    seen.add(normalized);
+    const { from, to } = moved.get(normalized);
+    problems.push(`A link points to ${from}, which moved to ${to}; link the new page.`);
+  }
+  return problems;
+}
+
 export async function checkLinks(newUrls, publishedUrls, { fetch }) {
   const published = new Set(publishedUrls);
   const problems = [];

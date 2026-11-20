@@ -17,18 +17,26 @@ test('fetches fixed pages and deduplicated sorted project pages, following redir
   assert.deepEqual(pages[0], { url: 'https://zia.saidi.pro/', text: 'Facts' });
 });
 test('records final URLs and scans the projects page even when it redirects', async () => {
-  const redirects = new Map([
+  const finalUrls = new Map([
+    ['about', 'https://zia.saidi.pro/about/'],
+    ['projects/example', 'https://awna.ai/work/example/'],
     ['projects', 'https://awna.ai/work/'],
     ['process', 'https://awna.ai/how-we-work/'],
     ['request-for-proposal', 'https://awna.ai/consulting/'],
   ]);
-  const { pages } = await fetchSiteFacts({ fetch: async url => {
+  const { pages, redirects } = await fetchSiteFacts({ fetch: async url => {
     const path = new URL(url).pathname.slice(1);
-    return { status: 200, url: redirects.get(path) ?? '', text: async () => path === 'projects' ? '<a href="/projects/example">Example</a>' : '<p>Facts</p>' };
+    return { status: 200, url: finalUrls.get(path) ?? '', text: async () => path === 'projects' ? '<a href="/projects/example">Example</a>' : '<p>Facts</p>' };
   } });
   assert.deepEqual(pages.map(page => page.url), [
-    'https://zia.saidi.pro/', 'https://zia.saidi.pro/about', 'https://awna.ai/work/',
-    'https://awna.ai/how-we-work/', 'https://awna.ai/consulting/', 'https://zia.saidi.pro/projects/example',
+    'https://zia.saidi.pro/', 'https://zia.saidi.pro/about/', 'https://awna.ai/work/',
+    'https://awna.ai/how-we-work/', 'https://awna.ai/consulting/', 'https://awna.ai/work/example/',
+  ]);
+  assert.deepEqual(redirects, [
+    { from: 'https://zia.saidi.pro/projects', to: 'https://awna.ai/work/' },
+    { from: 'https://zia.saidi.pro/process', to: 'https://awna.ai/how-we-work/' },
+    { from: 'https://zia.saidi.pro/request-for-proposal', to: 'https://awna.ai/consulting/' },
+    { from: 'https://zia.saidi.pro/projects/example', to: 'https://awna.ai/work/example/' },
   ]);
 });
 for (const url of ['https://example.com/', 'https://awna.ai.example.com/', 'http://awna.ai/', 'http://zia.saidi.pro/']) {
