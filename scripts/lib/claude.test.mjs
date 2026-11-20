@@ -74,6 +74,12 @@ test('draft prompt says there is no earlier bio to keep', async () => {
   const prompt = call.args[call.args.indexOf('--system-prompt') + 1];
   assert.ok(prompt.includes('there is no earlier bio to keep'));
 });
+test('draft prompt preserves each project role statement', async () => {
+  let call;
+  await draftProfile({ oauthToken: 'fake', runClaude: async args => { call = args; return envelope('{}'); } });
+  const prompt = call.args[call.args.indexOf('--system-prompt') + 1];
+  assert.ok(prompt.includes('Never shorten or drop a role statement'));
+});
 test('fact check supplies facts, draft and never-mention names', async () => {
   let call;
   const input = { facts: { pages: ['facts'] }, managed: 'draft', bio: 'bio', neverMention: ['secretproj'] };

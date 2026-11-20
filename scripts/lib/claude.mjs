@@ -118,6 +118,7 @@ const PROFILE_PROMPT = [
   'Write the bio fresh from the facts, in the website\'s own words for who Zia is and what she does; there is no earlier bio to keep.',
   'Do not invent clients, outcomes, numbers, products or links.',
   'Keep the current structure: the centred hero block, "Work that moved the number", and "How I build".',
+  'In "Work that moved the number", give each project Zia\'s role in the case study\'s own words: what she designed, built, maintains or led, and for whom. Never shorten or drop a role statement; trim other detail instead.',
   'Keep every existing link unless the facts show the page moved.',
   "Each page's url is where it lives now; when a README link redirects to a page's url, link that url instead.",
   'Never mention any name on the never-mention list, in any spelling or case, even when the website mentions it. This applies to every output field including summary.',
