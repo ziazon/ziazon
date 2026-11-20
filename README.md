@@ -5,12 +5,13 @@
 
 <p align="center">
   I connect the disciplines that make software work. Thirty years of building software end
-  to end, from servers and databases to the teams and companies around them. With AI, that
-  breadth now does the work of a whole team.
+  to end, from servers and databases to the teams and companies around them. I bring those
+  pieces into harmony for the people I work with and the communities I call home. With AI,
+  that breadth now does the work of a whole team.
 </p>
 
 <p align="center">
-  <a href="https://zia.saidi.pro">zia.saidi.pro</a> ·
+  <a href="https://zia.saidi.pro/">zia.saidi.pro</a> ·
   <a href="https://zia.saidi.pro/request-for-proposal">Request a proposal</a> ·
   <a href="https://fantastical.app/zia/intro">Book a call</a> ·
   <a href="https://www.linkedin.com/in/ziasaidi/">LinkedIn</a> ·
@@ -21,18 +22,22 @@
 
 ## Work that moved the number
 
-- **[ATM Gurus](https://zia.saidi.pro/projects/atm-gurus)** — a rebuilt parts-and-services
-  storefront drove dramatic, sustained growth in monthly sales within six months, with no
-  increase in advertising spend.
-- **[Christian Brands](https://zia.saidi.pro/projects/christian-brands)** — two brand
-  storefronts unified behind a legacy ERP, with **45,000+ products** migrated onto the new
-  platform.
-- **[BostonPads](https://zia.saidi.pro/projects/bostonpads)** — one listings engine,
-  application management system, and custom middleware behind a network of more than
-  **40 branded sites**.
-- **[Openbay](https://zia.saidi.pro/projects/openbay)** — the UI, public-facing APIs and
-  microservices behind a B2C and B2B auto-repair marketplace. I proposed and built the
-  partnership program, user subscriptions and partner portal that expanded the company's
+- **[ATM Gurus](https://zia.saidi.pro/projects/atm-gurus)** — I built a responsive eCommerce
+  application so customers can order parts and services, integrated with their Oracle-backed
+  inventory systems for real-time availability. I also customized a proprietary application
+  management system so the client can manage web content and customer accounts. Monthly sales
+  grew dramatically and steadily within six months, with no increase in advertising spend.
+- **[Christian Brands](https://zia.saidi.pro/projects/christian-brands)** — I designed and
+  built two new eCommerce sites unified behind their legacy ERP, integrated it for real-time
+  catalog and order flow, and migrated **45,000+ products** onto the new platform.
+- **[BostonPads](https://zia.saidi.pro/projects/bostonpads)** — I architected and built the
+  platform behind their apartment-listing network: a central listings engine, application
+  management system, and custom middleware powering more than **40 branded neighborhood
+  real-estate sites**.
+- **[Openbay](https://zia.saidi.pro/projects/openbay)** — As Principal Software Architect, I
+  designed, built and maintain the UI and public-facing APIs for drivers, shops and partners
+  on a B2C and B2B auto-repair marketplace. I proposed and built a Partnership Program
+  System, a User Subscriptions System and a Partner Portal UI that expanded the company's
   revenue opportunities.
 
 <a href="https://zia.saidi.pro/projects">See all the work →</a>
