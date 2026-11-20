@@ -59,9 +59,10 @@ export async function runMonthly(deps) {
   async function commitStats() {
     await git(['add', 'assets']);
     const result = await git(['diff', '--cached', '--quiet'], true);
-    if (result.code === 0) return;
+    if (result.code === 0) return false;
     await git(['commit', '-m', 'chore: refresh profile stats']);
     await git(['push', 'origin', 'HEAD:master']);
+    return true;
   }
   try {
     const original = await read('README.md', 'utf8');
@@ -78,7 +79,7 @@ export async function runMonthly(deps) {
     const publicNames = new Set([...ALLOWED_HOSTS, ...projectSlugs.map(slug => slug.toLowerCase())]);
     privateNames = privateNames.filter(name => !publicNames.has(name.toLowerCase()));
     const projects = renderProjects(repos);
-    const response = await draftProfile({ managed: oldParts.managed, current, pages, repos, skillCount,
+    const response = await draftProfile({ managed: oldParts.managed, blog: current.blog, pages, repos, skillCount,
       neverMention: privateNames, oauthToken, runClaude: deps.runClaude });
     const draftFields = ['managed', 'bio', 'blog', 'summary'];
     const draft = Object.fromEntries(draftFields.map(key => [key, response[key]]));
@@ -103,7 +104,8 @@ export async function runMonthly(deps) {
     else if (draft.managed.length < oldParts.managed.length * 0.4) managedProblems.push('Draft managed block is under 40% of the old managed block length.');
     const unchanged = updated === original && !Object.keys(changedFields).length;
     if (unchanged && !dryRun && !managedProblems.length) {
-      await commitStats();
+      const committed = await commitStats();
+      log(`Published: README ${committed ? 'committed' : 'unchanged'}; bio unchanged; blog unchanged.`);
       return;
     }
     const facts = { pages, repos, skillCount };
@@ -156,6 +158,7 @@ export async function runMonthly(deps) {
         await git(['push', 'origin', 'HEAD:master']);
       }
       if (Object.keys(changedFields).length) await githubRequest(api, '/user', { method: 'PATCH', body: JSON.stringify(changedFields) });
+      log(`Published: README ${staged.code === 1 ? 'committed' : 'unchanged'}; bio ${Object.hasOwn(changedFields, 'bio') ? 'updated' : 'unchanged'}; blog ${Object.hasOwn(changedFields, 'blog') ? 'updated' : 'unchanged'}.`);
       return;
     }
     if (updated === original) {
