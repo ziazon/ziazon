@@ -391,6 +391,17 @@ for (const dryRun of [true, false]) {
     assert.deepEqual(JSON.parse(f.claude[0].input).redirects, [{ from: proposalUrl, to: consultingUrl }]);
   });
 }
+test('moved managed link with a query requires review in live run', async () => {
+  const f = fixture({ stats: false, siteRedirects: { [proposalUrl]: consultingUrl },
+    draft: { managed: `I build software. [Proposal](${proposalUrl}?ref=gh)` } });
+  f.deps.readFile = async () => joinReadme({ ...parts, managed: `I build. [Proposal](${proposalUrl})` });
+  await assert.rejects(runMonthly(f.deps), /Opened .* for review: 1 checks did not pass/);
+  assert.ok(!f.git.some(args => args[0] === 'push' && args[2] === 'HEAD:master'));
+  assert.ok(!f.git.some(args => args[0] === 'add' && args.includes('README.md') && args.includes('assets')));
+  assert.deepEqual(mutations(f).map(([, options]) => options.method), ['POST']);
+  assert.match(JSON.parse(mutations(f)[0][1].body).body, /which moved to https:\/\/awna\.ai\/consulting\//);
+  assert.deepEqual(JSON.parse(f.claude[0].input).redirects, [{ from: proposalUrl, to: consultingUrl }]);
+});
 test('Awna Talk to us link and moved links outside the managed block raise no moved-link problem', async () => {
   const f = fixture({ dryRun: true, siteRedirects: { [proposalUrl]: consultingUrl },
     draft: { managed: `I build software. [Work with Awna](${consultingUrl}#talk-to-us)` } });

@@ -127,6 +127,6 @@ which is most of what I ship; the public repositories here are a small slice of 
 
 Tell me about your project and I'll come back with a tailored proposal.
 
-<a href="https://zia.saidi.pro/request-for-proposal">Request a Proposal</a> ·
+<a href="https://awna.ai/consulting/#talk-to-us">Work with Awna</a> ·
 <a href="https://fantastical.app/zia/intro">Book a call</a> ·
 <a href="https://zia.saidi.pro/contact">Send me a message</a>

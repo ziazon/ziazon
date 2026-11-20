@@ -51,6 +51,7 @@ export function checkMovedLinks(urls, redirects) {
     try {
       const url = new URL(raw);
       url.hash = '';
+      url.search = '';
       url.pathname = url.pathname.replace(/\/$/, '');
       url.hostname = url.hostname.toLowerCase();
       return url.href;
