@@ -76,6 +76,16 @@ test('clean run stages README and assets, commits fixed body, pushes master, the
   assert.equal(options.method, 'PATCH');
   assert.deepEqual(JSON.parse(options.body), { bio: proposal.bio });
 });
+test('clean run logs exactly what it published when README, bio and blog change', async () => {
+  const f = fixture({ draft: { blog: 'https://zia.saidi.pro/about' } });
+  await runMonthly(f.deps);
+  assert.deepEqual(f.logs, ['Published: README committed; bio updated; blog updated.']);
+});
+test('clean run logs exactly what it published when nothing changes', async () => {
+  const f = fixture({ unchanged: true, stats: false });
+  await runMonthly(f.deps);
+  assert.deepEqual(f.logs, ['Published: README unchanged; bio unchanged; blog unchanged.']);
+});
 test('only changed blog is patched; company is never patched', async () => {
   const f = fixture({ draft: { bio: current.bio, blog: 'https://zia.saidi.pro/about' } });
   await runMonthly(f.deps);
@@ -295,9 +305,19 @@ test('an already-empty managed block still needs review on an otherwise unchange
 for (const company of ['fixture-private', 42, null]) {
   test(`extra company is ignored for publishing and unchanged detection: ${JSON.stringify(company)}`, async () => {
     const f = fixture({ draft: { company, blog: 'https://zia.saidi.pro/about' } });
+    const oldBio = 'Earlier bio sentinel';
+    const fetch = f.deps.fetch;
+    f.deps.fetch = async (url, options) => {
+      const response = await fetch(url, options);
+      return url === 'https://api.github.com/user' && !options?.method
+        ? { ...response, json: async () => ({ ...await response.json(), bio: oldBio }) } : response;
+    };
     await runMonthly(f.deps);
     assert.deepEqual(JSON.parse(mutations(f)[0][1].body), { bio: proposal.bio, blog: 'https://zia.saidi.pro/about' });
-    assert.deepEqual(JSON.parse(f.claude[0].input).current, { bio: current.bio, blog: current.blog });
+    const input = JSON.parse(f.claude[0].input);
+    assert.equal(input.blog, current.blog);
+    assert.equal(Object.hasOwn(input, 'current'), false);
+    assert.ok(!f.claude[0].input.includes(oldBio));
     const unchanged = fixture({ unchanged: true, stats: false, draft: { company } });
     await runMonthly(unchanged.deps);
     assert.equal(unchanged.claude.length, 1);

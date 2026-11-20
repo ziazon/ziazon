@@ -56,13 +56,23 @@ test('spawn failure still removes the throwaway directory', async () => {
 });
 test('draft supplies all facts and constrains voice, exact numbers, links, structure and private names', async () => {
   let call;
-  const input = { managed: 'current', current: { bio: 'bio', blog: 'blog' }, pages: [{ text: 'Thirty years' }], repos: [], skillCount: 30, neverMention: ['fixture-private'] };
-  await draftProfile({ ...input, oauthToken: 'fake', runClaude: async args => { call = args; return envelope('{"managed":"new"}'); } });
+  const current = { bio: 'Earlier bio sentinel', blog: 'blog' };
+  const input = { managed: 'current', blog: current.blog, pages: [{ text: 'Thirty years' }], repos: [], skillCount: 30, neverMention: ['fixture-private'] };
+  await draftProfile({ ...input, current, oauthToken: 'fake', runClaude: async args => { call = args; return envelope('{"managed":"new"}'); } });
   assert.deepEqual(JSON.parse(call.input), input);
+  assert.equal(JSON.parse(call.input).blog, current.blog);
+  assert.equal(Object.hasOwn(JSON.parse(call.input), 'current'), false);
+  assert.ok(!call.input.includes(current.bio));
   const prompt = call.args[call.args.indexOf('--system-prompt') + 1];
   for (const phrase of ['she/her', 'first person', 'Thirty years', 'Work that moved the number', 'How I build', 'every existing link', 'never-mention', 'exclamation', '"managed"', '"bio"', '"blog"', '"summary"']) assert.ok(prompt.includes(phrase), phrase);
   assert.doesNotMatch(prompt, /"company"/);
   assert.ok(prompt.includes("Each page's url is where it lives now; when a README link redirects to a page's url, link that url instead."));
+});
+test('draft prompt says there is no earlier bio to keep', async () => {
+  let call;
+  await draftProfile({ oauthToken: 'fake', runClaude: async args => { call = args; return envelope('{}'); } });
+  const prompt = call.args[call.args.indexOf('--system-prompt') + 1];
+  assert.ok(prompt.includes('there is no earlier bio to keep'));
 });
 test('fact check supplies facts, draft and never-mention names', async () => {
   let call;
