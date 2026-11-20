@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://zia.saidi.pro/">zia.saidi.pro</a> ·
-  <a href="https://zia.saidi.pro/request-for-proposal">Request a proposal</a> ·
+  <a href="https://awna.ai/consulting/#talk-to-us">Work with Awna</a> ·
   <a href="https://fantastical.app/zia/intro">Book a call</a> ·
   <a href="https://www.linkedin.com/in/ziasaidi/">LinkedIn</a> ·
   <a href="https://www.patreon.com/ziazizi">Support my work on Patreon</a>
@@ -28,8 +28,8 @@
   management system so the client can manage web content and customer accounts. Monthly sales
   grew dramatically and steadily within six months, with no increase in advertising spend.
 - **[Christian Brands](https://zia.saidi.pro/projects/christian-brands)** — I designed and
-  built two new eCommerce sites unified behind their legacy ERP, integrated it for real-time
-  catalog and order flow, and migrated **45,000+ products** onto the new platform.
+  built two new eCommerce sites for them, unified behind their legacy ERP, integrated it for
+  real-time catalog and order flow, and migrated **45,000+ products** onto the new platform.
 - **[BostonPads](https://zia.saidi.pro/projects/bostonpads)** — I architected and built the
   platform behind their apartment-listing network: a central listings engine, application
   management system, and custom middleware powering more than **40 branded neighborhood
