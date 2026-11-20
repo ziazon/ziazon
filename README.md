@@ -5,8 +5,8 @@
 
 <p align="center">
   I connect the disciplines that make software work. Thirty years of building software end
-  to end, from servers and databases to the teams around them. With AI, that breadth now does
-  the work of a whole team.
+  to end, from servers and databases to the teams and companies around them. With AI, that
+  breadth now does the work of a whole team.
 </p>
 
 <p align="center">
@@ -28,11 +28,12 @@
   storefronts unified behind a legacy ERP, with **45,000+ products** migrated onto the new
   platform.
 - **[BostonPads](https://zia.saidi.pro/projects/bostonpads)** — one listings engine,
-  application management system, and custom middleware behind a **40+ site** branded
-  property network.
-- **[Openbay](https://zia.saidi.pro/projects/openbay)** — the microservices platform behind a
-  B2C and B2B auto-repair marketplace; I proposed and built the partnership program,
-  subscriptions, and partner-portal systems that opened new revenue lines.
+  application management system, and custom middleware behind a network of more than
+  **40 branded sites**.
+- **[Openbay](https://zia.saidi.pro/projects/openbay)** — the UI, public-facing APIs and
+  microservices behind a B2C and B2B auto-repair marketplace. I proposed and built the
+  partnership program, user subscriptions and partner portal that expanded the company's
+  revenue opportunities.
 
 <a href="https://zia.saidi.pro/projects">See all the work →</a>
 
@@ -49,7 +50,7 @@ person signs off every delivery, and every correction goes back into the standar
 - Every open decision settled up front, so the agents work from complete plans and nothing
   stalls mid-build
 - Written project notes carry context between sessions, so month six moves as fast as week one
-- Speed from parallel builds, not corner-cutting
+- Independent pieces built side by side, then reviewed by me
 
 <a href="https://awna.ai/how-we-work/">See how I build →</a>
 
