@@ -57,7 +57,7 @@ test('spawn failure still removes the throwaway directory', async () => {
 test('draft supplies all facts and constrains voice, exact numbers, links, structure and private names', async () => {
   let call;
   const current = { bio: 'Earlier bio sentinel', blog: 'blog' };
-  const input = { managed: 'current', blog: current.blog, pages: [{ text: 'Thirty years' }], repos: [], skillCount: 30, neverMention: ['fixture-private'] };
+  const input = { managed: 'current', blog: current.blog, pages: [{ text: 'Thirty years' }], redirects: [{ from: 'https://zia.saidi.pro/request-for-proposal', to: 'https://awna.ai/consulting/' }], repos: [], skillCount: 30, neverMention: ['fixture-private'] };
   await draftProfile({ ...input, current, oauthToken: 'fake', runClaude: async args => { call = args; return envelope('{"managed":"new"}'); } });
   assert.deepEqual(JSON.parse(call.input), input);
   assert.equal(JSON.parse(call.input).blog, current.blog);
@@ -66,7 +66,10 @@ test('draft supplies all facts and constrains voice, exact numbers, links, struc
   const prompt = call.args[call.args.indexOf('--system-prompt') + 1];
   for (const phrase of ['she/her', 'first person', 'Thirty years', 'Work that moved the number', 'How I build', 'every existing link', 'never-mention', 'exclamation', '"managed"', '"bio"', '"blog"', '"summary"']) assert.ok(prompt.includes(phrase), phrase);
   assert.doesNotMatch(prompt, /"company"/);
-  assert.ok(prompt.includes("Each page's url is where it lives now; when a README link redirects to a page's url, link that url instead."));
+  assert.ok(prompt.includes('`redirects` lists website addresses that moved, as {from, to}. Never link a `from` address; link its `to` page instead.'));
+  assert.ok(prompt.includes('Zia\'s ruling (2026-11-20): the hero\'s proposal link goes to Awna\'s "Talk to us" section, https://awna.ai/consulting/#talk-to-us, and reads "Work with Awna".'));
+  assert.ok(prompt.includes('https://awna.ai/consulting/#talk-to-us'));
+  assert.ok(prompt.includes('Work with Awna'));
 });
 test('draft prompt says there is no earlier bio to keep', async () => {
   let call;

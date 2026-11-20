@@ -7,7 +7,7 @@ const current = { bio: 'I build.', blog: 'https://zia.saidi.pro', company: 'Fixt
 const parts = { before: 'Hero\n', managed: '\nI build.\n', between: '\n', projects: '\n', after: '\nActivity\n' };
 const original = joinReadme(parts);
 const proposal = { managed: '\nI build software.\n', bio: 'I build software.', blog: current.blog, summary: 'Aligned with website.' };
-function fixture({ draft = {}, stats = true, unsupported = [], factError = false, privateNames = ['fixture-private'], dryRun = false, unchanged = false, apiStatus } = {}) {
+function fixture({ draft = {}, stats = true, unsupported = [], factError = false, privateNames = ['fixture-private'], dryRun = false, unchanged = false, apiStatus, siteRedirects = {} } = {}) {
   const git = [], requests = [], writes = [], logs = [], claude = [];
   const deps = {
     token: 'profile-SENTINEL', oauthToken: 'oauth-SENTINEL', repository: 'fixture-owner/fixture-profile', runId: '123', dryRun,
@@ -23,7 +23,7 @@ function fixture({ draft = {}, stats = true, unsupported = [], factError = false
     },
     fetch: async (url, options = {}) => {
       requests.push([url, options]);
-      if (url.startsWith('https://zia.saidi.pro/')) return { status: 200, text: async () => '<p>I build software.</p>' };
+      if (url.startsWith('https://zia.saidi.pro/')) return { status: 200, url: siteRedirects[url] ?? '', text: async () => '<p>I build software.</p>' };
       if (options.method === 'PATCH') return { status: apiStatus ?? 200, json: async () => ({}) };
       if (options.method === 'POST') return { status: 201, json: async () => ({ html_url: 'https://github.com/fixture-owner/fixture-profile/pull/1' }) };
       let body;
@@ -367,3 +367,54 @@ for (const [outcome, kind] of [
     assert.deepEqual(mutations(f), []);
   });
 }
+
+const proposalUrl = 'https://zia.saidi.pro/request-for-proposal';
+const consultingUrl = 'https://awna.ai/consulting/';
+for (const dryRun of [true, false]) {
+  test(`moved managed link requires review in ${dryRun ? 'dry run' : 'live run'}`, async () => {
+    const f = fixture({ dryRun, stats: false, siteRedirects: { [proposalUrl]: consultingUrl },
+      draft: { managed: `I build software. [Proposal](${proposalUrl})` } });
+    f.deps.readFile = async () => joinReadme({ ...parts, managed: `I build. [Proposal](${proposalUrl})` });
+    if (dryRun) {
+      await runMonthly(f.deps);
+      assert.match(f.logs.join('\n'), /which moved to https:\/\/awna\.ai\/consulting\//);
+      assert.deepEqual(f.git, []);
+      assert.deepEqual(f.writes, []);
+      assert.deepEqual(mutations(f), []);
+    } else {
+      await assert.rejects(runMonthly(f.deps), /Opened .* for review: 1 checks did not pass/);
+      assert.ok(!f.git.some(args => args[0] === 'push' && args[2] === 'HEAD:master'));
+      assert.ok(!f.git.some(args => args[0] === 'add' && args.includes('README.md') && args.includes('assets')));
+      assert.deepEqual(mutations(f).map(([, options]) => options.method), ['POST']);
+      assert.match(JSON.parse(mutations(f)[0][1].body).body, /which moved to https:\/\/awna\.ai\/consulting\//);
+    }
+    assert.deepEqual(JSON.parse(f.claude[0].input).redirects, [{ from: proposalUrl, to: consultingUrl }]);
+  });
+}
+test('moved managed link with a query requires review in live run', async () => {
+  const f = fixture({ stats: false, siteRedirects: { [proposalUrl]: consultingUrl },
+    draft: { managed: `I build software. [Proposal](${proposalUrl}?ref=gh)` } });
+  f.deps.readFile = async () => joinReadme({ ...parts, managed: `I build. [Proposal](${proposalUrl})` });
+  await assert.rejects(runMonthly(f.deps), /Opened .* for review: 1 checks did not pass/);
+  assert.ok(!f.git.some(args => args[0] === 'push' && args[2] === 'HEAD:master'));
+  assert.ok(!f.git.some(args => args[0] === 'add' && args.includes('README.md') && args.includes('assets')));
+  assert.deepEqual(mutations(f).map(([, options]) => options.method), ['POST']);
+  assert.match(JSON.parse(mutations(f)[0][1].body).body, /which moved to https:\/\/awna\.ai\/consulting\//);
+  assert.deepEqual(JSON.parse(f.claude[0].input).redirects, [{ from: proposalUrl, to: consultingUrl }]);
+});
+test('Awna Talk to us link and moved links outside the managed block raise no moved-link problem', async () => {
+  const f = fixture({ dryRun: true, siteRedirects: { [proposalUrl]: consultingUrl },
+    draft: { managed: `I build software. [Work with Awna](${consultingUrl}#talk-to-us)` } });
+  f.deps.readFile = async () => joinReadme({ ...parts, before: `Hero [Proposal](${proposalUrl})\n` });
+  await runMonthly(f.deps);
+  assert.doesNotMatch(f.logs.join('\n'), /which moved to/);
+  assert.deepEqual(f.git, []);
+});
+test('an unchanged managed block with a moved link still requires review', async () => {
+  const managed = `\nI build. [Proposal](${proposalUrl})\n`;
+  const f = fixture({ unchanged: true, stats: false, draft: { managed }, siteRedirects: { [proposalUrl]: consultingUrl } });
+  f.deps.readFile = async () => joinReadme({ ...parts, managed });
+  await assert.rejects(runMonthly(f.deps), /Profile fields need review: A link points to .*which moved to/);
+  assert.deepEqual(f.writes, []);
+  assert.deepEqual(mutations(f), []);
+});

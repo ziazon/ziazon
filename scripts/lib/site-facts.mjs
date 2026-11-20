@@ -11,6 +11,7 @@ export function htmlToText(html) {
 }
 
 export async function fetchSiteFacts({ fetch }) {
+  const redirects = [];
   async function page(path) {
     const url = `https://zia.saidi.pro/${path}`;
     const response = await fetch(url, { redirect: 'follow' });
@@ -19,6 +20,12 @@ export async function fetchSiteFacts({ fetch }) {
     const parsed = new URL(finalUrl);
     if (parsed.protocol !== 'https:' || !['zia.saidi.pro', 'awna.ai'].includes(parsed.hostname)) {
       throw new Error('Website page final URL must use HTTPS on zia.saidi.pro or awna.ai.');
+    }
+    const requested = new URL(url);
+    const withoutTrailingSlash = value => value.replace(/\/$/, '');
+    if (withoutTrailingSlash(parsed.pathname) !== withoutTrailingSlash(requested.pathname)
+      || parsed.origin !== requested.origin || parsed.search !== requested.search || parsed.hash !== requested.hash) {
+      redirects.push({ from: url, to: finalUrl });
     }
     return { url: finalUrl, html: await response.text() };
   }
@@ -31,5 +38,5 @@ export async function fetchSiteFacts({ fetch }) {
   }
   const slugs = [...new Set([...projectsPage.html.matchAll(/href="\/projects\/([a-zA-Z0-9_-]+)"/g)].map(match => match[1]))].sort();
   for (const slug of slugs) pages.push(await page(`projects/${slug}`));
-  return { pages: pages.map(({ url, html }) => ({ url, text: htmlToText(html) })), projectSlugs: slugs };
+  return { pages: pages.map(({ url, html }) => ({ url, text: htmlToText(html) })), projectSlugs: slugs, redirects };
 }

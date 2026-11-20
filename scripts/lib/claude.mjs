@@ -120,14 +120,15 @@ const PROFILE_PROMPT = [
   'Keep the current structure: the centred hero block, "Work that moved the number", and "How I build".',
   'In "Work that moved the number", give each project Zia\'s role in the case study\'s own words: what she designed, built, maintains or led, and for whom. Never shorten or drop a role statement; trim other detail instead.',
   'Keep every existing link unless the facts show the page moved.',
-  "Each page's url is where it lives now; when a README link redirects to a page's url, link that url instead.",
+  '`redirects` lists website addresses that moved, as {from, to}. Never link a `from` address; link its `to` page instead.',
+  'Zia\'s ruling (2026-11-20): the hero\'s proposal link goes to Awna\'s "Talk to us" section, https://awna.ai/consulting/#talk-to-us, and reads "Work with Awna".',
   'Never mention any name on the never-mention list, in any spelling or case, even when the website mentions it. This applies to every output field including summary.',
   'Plain and warm, no hype, no exclamation marks.',
   'Output only JSON: {"managed":"<markdown for the managed block>","bio":"<at most 160 chars>","blog":"<https url>","summary":"<one line: what changed and why>"}.',
 ].join('\n');
 
-export function draftProfile({ managed, blog, pages, repos, skillCount, neverMention, oauthToken, runClaude }) {
-  return runClaudeJson({ systemPrompt: PROFILE_PROMPT, input: { managed, blog, pages, repos, skillCount, neverMention }, oauthToken, runClaude });
+export function draftProfile({ managed, blog, pages, redirects, repos, skillCount, neverMention, oauthToken, runClaude }) {
+  return runClaudeJson({ systemPrompt: PROFILE_PROMPT, input: { managed, blog, pages, redirects, repos, skillCount, neverMention }, oauthToken, runClaude });
 }
 
 export function factCheck({ facts, managed, bio, neverMention, oauthToken, runClaude }) {
